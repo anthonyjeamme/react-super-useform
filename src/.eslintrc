@@ -1,5 +1,8 @@
 {
-  "env": {
-    "jest": true
-  }
+	"env": {
+		"jest": true
+	},
+	"rules": {
+		"indent": "off"
+	},
 }
