@@ -151,10 +151,17 @@ const useForm = (formSchema = {}, initData = null) => {
 										},
 										pathHistory
 									),
-									remove: () => {
+									canBeRemoved: (): boolean => {
+										if (parent.min && parent.children.length <= parent.min)
+											return false
+
+										return true
+									},
+									remove: (): any => {
+										if (parent.readOnly) return false
 										if (parent.min && parent.children.length <= parent.min) {
 											console.warn('Impossible to delete')
-											return
+											return false
 										}
 
 										updateFunction({
@@ -169,9 +176,16 @@ const useForm = (formSchema = {}, initData = null) => {
 							)
 						})
 					},
+					canPush: (): boolean => {
+						if (parent.readOnly) return false
+						if (parent.max && parent.children.length >= parent.max) return false
+
+						return true
+					},
 					push: (item = null) => {
 						if (parent.readOnly) {
-							throw new Error(`form field is readOnly`)
+							console.warn(`form field '${pathHistory.join('.')}' is readOnly`)
+							return
 						}
 
 						if (parent.children.length >= parent.max) {
@@ -187,6 +201,13 @@ const useForm = (formSchema = {}, initData = null) => {
 							...parent,
 							children: [...parent.children, newField]
 						})
+					},
+					canRemove: (): boolean => {
+						if (parent.readOnly) return false
+						if (parent.min && parent.children.length <= parent.min) {
+							return false
+						}
+						return true
 					},
 					remove: (i: number) => {
 						if (parent.min && parent.children.length <= parent.min) {

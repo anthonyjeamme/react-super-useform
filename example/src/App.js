@@ -121,9 +121,14 @@ const App = () => {
 				<div key={item}>
 
 					<Input {...item} />
-					<button onClick={()=>{
-						form.get('list').remove(i)
-					}}>X</button>
+					{
+						item.canBeRemoved() && (
+							
+							<button onClick={()=>{
+								form.get('list').remove(i)
+							}}>X</button>
+							)
+						}
 				</div>
 			))
 		}
