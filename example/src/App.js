@@ -51,10 +51,13 @@ width: 1000px;
 max-width:90vw;
 margin:auto;
 `
-const Input = ({value, setValue, ...props}) => (
+const Input = ({value, setValue, error, ...props}) => (
+	<>
+	{error && 'ERROR'}
 	<StyledInput value={value} onChange={e=>{
 		setValue(e.target.value)
 	}} {...props}/>
+	</>
 )
 
 const StyledFormGroupLabel = styled.div`
@@ -87,11 +90,17 @@ const App = () => {
 			children: {
 				name:text_field()
 			}
+		},
+		list:{
+			type: Array,
+			min: 2,
+			children: text_field()
 		}
 	},{
 		firstname:'',
 		lastname:'',
-		favorites:[]
+		favorites:[],
+		list: []
 	})
 
   return (
@@ -100,15 +109,25 @@ const App = () => {
 		<h1>Form</h1>
 
 		<FormGroup label="firstname">
-
 			<Input {...form.get('firstname')}  />
 		</FormGroup>
 
 		<FormGroup label="lastname">
-
 			<Input {...form.get('lastname')}  />
 		</FormGroup>
 
+		{
+			form.get('list').map((item,i) => (
+				<div key={item}>
+
+					<Input {...item} />
+					<button onClick={()=>{
+						form.get('list').remove(i)
+					}}>X</button>
+				</div>
+			))
+		}
+		<button onClick={()=>form.get('list').push()}>ADD</button>
 
 		<div>
 			<h2>
@@ -118,6 +137,9 @@ const App = () => {
 				form.get('favorites').map((favorite)=>(
 					<div style={{marginBottom:10}}>
 						<Input {...favorite.get('name')} key={favorite} />
+			<StyledButton onClick={()=>{
+				favorite.remove()
+			}}>Remove</StyledButton>
 					</div>
 				))
 			}
@@ -131,6 +153,9 @@ const App = () => {
 		</div>
 
 	<div>
+		<StyledButton onClick={()=>{
+			form.checkErrors()
+			}}>Check Errors</StyledButton>
 		
 		<StyledButton onClick={()=>{
 				console.log(form.toJSON())

@@ -17,6 +17,21 @@ const getDefaultOfType = (type: any) => {
 }
 
 const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
+	if (schema.type) {
+		const value =
+			defaultValue && typeof defaultValue !== 'object'
+				? defaultValue
+				: schema.default || getDefaultOfType(schema.type)
+
+		return {
+			type: schema.type,
+			value,
+			error: false,
+			required: schema.required === true,
+			validation: schema.validation || (() => true)
+		}
+	}
+
 	const _ = {}
 
 	Object.keys(schema).forEach((key) => {
@@ -26,7 +41,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 				defaultValue && defaultValue[key] && defaultValue[key]
 			)
 		} else if (schema[key].type === Array) {
-			const children =
+			let children =
 				defaultValue &&
 				defaultValue[key] &&
 				schema[key].children.type &&
@@ -47,6 +62,19 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 					: (schema[key].default || []).map((child: any) =>
 							getDataFromSchemaAndDefault(schema[key].children, child)
 					  ) || []
+
+			if (schema[key].min) {
+				if (children.length < schema[key].min) {
+					const nChildrenToAdd = schema[key].min - children.length
+
+					children = [
+						...children,
+						...[...new Array(nChildrenToAdd)].map(() =>
+							getDataFromSchemaAndDefault(schema[key].children, null)
+						)
+					]
+				}
+			}
 
 			_[key] = {
 				type: Array,
@@ -124,6 +152,11 @@ const useForm = (formSchema = {}, initData = null) => {
 										pathHistory
 									),
 									remove: () => {
+										if (parent.min && parent.children.length <= parent.min) {
+											console.warn('Impossible to delete')
+											return
+										}
+
 										updateFunction({
 											...parent,
 											children: parent.children.filter(
@@ -136,7 +169,7 @@ const useForm = (formSchema = {}, initData = null) => {
 							)
 						})
 					},
-					push: (item = {}) => {
+					push: (item = null) => {
 						if (parent.readOnly) {
 							throw new Error(`form field is readOnly`)
 						}
@@ -156,6 +189,11 @@ const useForm = (formSchema = {}, initData = null) => {
 						})
 					},
 					remove: (i: number) => {
+						if (parent.min && parent.children.length <= parent.min) {
+							console.warn('Impossible to delete')
+							return
+						}
+
 						updateFunction({
 							...parent,
 							children: parent.children.filter((_: any, _i: number) => i !== _i)
@@ -276,7 +314,11 @@ const useForm = (formSchema = {}, initData = null) => {
 							error: null
 						}
 				}
-				if (!data.validation(data.value)) {
+				if (
+					data.validation &&
+					typeof data.validation === 'function' &&
+					!data.validation(data.value)
+				) {
 					return {
 						...data,
 						error: true
@@ -322,6 +364,7 @@ const useForm = (formSchema = {}, initData = null) => {
 			if (data.validation) {
 				if (!data.required && !data.value) return true
 
+				if (typeof data.validation !== 'function') return true
 				return data.validation(data.value)
 			}
 			return true
@@ -349,6 +392,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = {}
 
 		Object.keys(data).forEach((key) => {
+			if (key === '__error') return
+
 			_data[key] = recursiveToJSON(data[key])
 			if (data[key].___payload) {
 				_data.payload = data[key].___payload
