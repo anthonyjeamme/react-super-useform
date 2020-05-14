@@ -70,7 +70,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 					children = [
 						...children,
 						...[...new Array(nChildrenToAdd)].map(() =>
-							getDataFromSchemaAndDefault(schema[key].children, null)
+							getDataFromSchemaAndDefault(schema[key].children, {})
 						)
 					]
 				}
@@ -102,6 +102,21 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 			}
 		}
 	})
+
+	if (defaultValue) {
+		Object.keys(defaultValue).forEach((key) => {
+			if (!schema[key]) {
+				_[key] = {
+					type: typeof defaultValue[key] === 'object' ? Object : String,
+					value: defaultValue[key],
+					error: false,
+					required: false,
+					validation: () => true
+				}
+			}
+		})
+	}
+
 	return _
 }
 
@@ -119,6 +134,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		generateDataFromSchema(formSchema, initData)
 	)
 
+	console.log(formData)
+
 	const recursiveGet = (
 		parent: any,
 		path: string[],
@@ -129,6 +146,7 @@ const useForm = (formSchema = {}, initData = null) => {
 			if (parent.type === Array) {
 				return {
 					error: parent.error,
+					length: parent.children.length,
 					map: (func: (child: any, i: number) => any) => {
 						return parent.children.map((child: any, i: number) => {
 							return func(
@@ -175,6 +193,30 @@ const useForm = (formSchema = {}, initData = null) => {
 								i
 							)
 						})
+					},
+					// TODO make possibility to get '0.name' ??
+					get: (i: number): any => {
+						console.log(parent)
+						// return parent.children[i]
+
+						return recursiveGet(
+							parent.children[i],
+							[],
+							(data: any) => {
+								updateFunction({
+									...parent,
+									children: parent.children.map((c: any, _i: number) =>
+										_i === i
+											? {
+													...c,
+													...data
+											  }
+											: c
+									)
+								})
+							},
+							pathHistory
+						)
 					},
 					canPush: (): boolean => {
 						if (parent.readOnly) return false
@@ -250,6 +292,37 @@ const useForm = (formSchema = {}, initData = null) => {
 		if (!parent) {
 			console.error(`unknown field '${pathHistory.join('.')}'`)
 			return null
+		}
+
+		if (parent.type === Object) {
+			let _v = parent.value
+
+			const key = path[0]
+			let _path = [...path]
+
+			while (_path.length > 0) {
+				if (typeof _v !== 'object') {
+					console.warn(`${path.join('.')} not found`)
+					return null
+				}
+				const key = _path[0]
+				_v = _v[key]
+				_path = _path.slice(1)
+			}
+
+			return {
+				value: _v,
+				setValue: (v: any) => {
+					console.log(v, parent)
+					updateFunction({
+						...parent,
+						value: {
+							...parent.value,
+							[key]: v
+						}
+					})
+				}
+			}
 		}
 
 		if (parent.type === Array) {

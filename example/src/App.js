@@ -99,8 +99,11 @@ const App = () => {
 	},{
 		firstname:'',
 		lastname:'',
+		_id:{
+			test:'okok'
+		},
 		favorites:[],
-		list: []
+		list: ['b']
 	})
 
   return (
@@ -119,7 +122,7 @@ const App = () => {
 		{
 			form.get('list').map((item,i) => (
 				<div key={item}>
-
+					{i}
 					<Input {...item} />
 					{
 						item.canBeRemoved() && (
@@ -134,6 +137,15 @@ const App = () => {
 		}
 		<button onClick={()=>form.get('list').push()}>ADD</button>
 
+{JSON.stringify(form.get('_id.test'))}
+
+<button onClick={()=>{
+
+
+console.log('=>',
+	form.get('favorites').get(0).get('name').value)
+}}>TEST</button>
+
 		<div>
 			<h2>
 			Favorites</h2>
@@ -142,9 +154,9 @@ const App = () => {
 				form.get('favorites').map((favorite)=>(
 					<div style={{marginBottom:10}}>
 						<Input {...favorite.get('name')} key={favorite} />
-			<StyledButton onClick={()=>{
-				favorite.remove()
-			}}>Remove</StyledButton>
+							<StyledButton onClick={()=>{
+								favorite.remove()
+							}}>Remove</StyledButton>
 					</div>
 				))
 			}

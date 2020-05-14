@@ -1,3 +1,7 @@
+# Warning
+
+Lib is in development. This is an alpha version. ⚠️
+
 # Usage
 
     import useForm from './useForm.js'
