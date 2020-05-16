@@ -18,6 +18,17 @@ const getDefaultOfType = (type: any) => {
 
 const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 	if (schema.type) {
+		if (schema.type === Array) {
+			return getDataFromSchemaAndDefault(
+				{
+					a: schema
+				},
+				{
+					a: defaultValue
+				}
+			).a
+		}
+
 		const value =
 			defaultValue && typeof defaultValue !== 'object'
 				? defaultValue
@@ -80,6 +91,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 				type: Array,
 				children,
 				childrenSchema: schema[key].children,
+				schema: schema[key],
 				readOnly: schema[key].readOnly,
 				validation: schema[key].validation || (() => true),
 				max: schema[key].max || Infinity,
@@ -134,7 +146,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		generateDataFromSchema(formSchema, initData)
 	)
 
-	console.log(formData)
+	const [modified, setModified] = useState(false)
 
 	const recursiveGet = (
 		parent: any,
@@ -194,9 +206,13 @@ const useForm = (formSchema = {}, initData = null) => {
 							)
 						})
 					},
+					toJSON: () => recursiveToJSON(parent),
+					set: (data: any) => {
+						const _ = getDataFromSchemaAndDefault(parent.schema, data)
+						updateFunction(_)
+					},
 					// TODO make possibility to get '0.name' ??
 					get: (i: number): any => {
-						console.log(parent)
 						// return parent.children[i]
 
 						return recursiveGet(
@@ -284,7 +300,8 @@ const useForm = (formSchema = {}, initData = null) => {
 							},
 							pathHistory
 						)
-					}
+					},
+					toJSON: () => recursiveToJSON(parent)
 				}
 			}
 		}
@@ -313,7 +330,6 @@ const useForm = (formSchema = {}, initData = null) => {
 			return {
 				value: _v,
 				setValue: (v: any) => {
-					console.log(v, parent)
 					updateFunction({
 						...parent,
 						value: {
@@ -376,6 +392,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const path = name.split('.')
 
 		return recursiveGet(formData, path, (data: any) => {
+			setModified(true)
 			setFormData({
 				...formData,
 				...data
@@ -512,7 +529,10 @@ const useForm = (formSchema = {}, initData = null) => {
 		checkErrors,
 		get,
 		toJSON,
-		handleSubmit
+		handleSubmit,
+		formData,
+		modified,
+		setModified
 	}
 }
 

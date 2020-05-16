@@ -4,6 +4,7 @@
 type FieldParam = {
 	required?: boolean
 	default?: any
+	validation?: (value: any) => boolean
 }
 
 // Source: https://emailregex.com/
@@ -16,12 +17,6 @@ const VALIDATION_MAIL = (s: string) =>
 const VALIDATION_PHONE = (s: string) =>
 	/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(s)
 
-/**
- *
- * @param {{
- *   required?: Boolean
- * }} params
- */
 const field_params = (params: FieldParam = {}) => ({
 	required: params.required !== undefined ? params.required : true
 })
@@ -32,15 +27,14 @@ type PrimitiveField = {
 	default?: any
 } & FieldParam
 
-/**
- *
- * @param {{
- *   required?: Boolean
- * }} params
- */
 export const text_field = (params: FieldParam = {}): PrimitiveField => ({
 	type: String,
-	validation: (s: string) => s.length > 0,
+
+	validation:
+		params.validation && typeof params.validation === 'function'
+			? params.validation
+			: (s: string) => s.length > 0,
+
 	default: params.default || '',
 	...field_params(params)
 })
@@ -52,7 +46,12 @@ export const text_field = (params: FieldParam = {}): PrimitiveField => ({
 export const number_field = (params: FieldParam = {}): PrimitiveField => ({
 	type: Number,
 	default: params.default || null,
-	validation: () => true,
+
+	validation:
+		params.validation && typeof params.validation === 'function'
+			? params.validation
+			: (v) => v !== null || v === '',
+
 	...field_params(params)
 })
 
@@ -65,7 +64,7 @@ export const number_field = (params: FieldParam = {}): PrimitiveField => ({
 export const bool_field = (params: FieldParam = {}): PrimitiveField => ({
 	type: Boolean,
 	default: params.default || false,
-	validation: () => true,
+	validation: (v) => v !== null,
 	...field_params(params)
 })
 
