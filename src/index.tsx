@@ -52,7 +52,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 				defaultValue && defaultValue[key] && defaultValue[key]
 			)
 		} else if (schema[key].type === Array) {
-			let children =
+			const children =
 				defaultValue &&
 				defaultValue[key] &&
 				schema[key].children.type &&
@@ -78,12 +78,9 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 				if (children.length < schema[key].min) {
 					const nChildrenToAdd = schema[key].min - children.length
 
-					children = [
-						...children,
-						...[...new Array(nChildrenToAdd)].map(() =>
-							getDataFromSchemaAndDefault(schema[key].children, {})
-						)
-					]
+					for (let i = 0; i < nChildrenToAdd; i++) {
+						children.push(getDataFromSchemaAndDefault(schema[key].children, {}))
+					}
 				}
 			}
 

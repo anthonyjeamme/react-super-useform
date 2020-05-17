@@ -35,7 +35,7 @@ export const text_field = (params: FieldParam = {}): PrimitiveField => ({
 			? params.validation
 			: (s: string) => s.length > 0,
 
-	default: params.default || '',
+	default: params.default !== undefined ? params.default : '',
 	...field_params(params)
 })
 
@@ -45,13 +45,11 @@ export const text_field = (params: FieldParam = {}): PrimitiveField => ({
  */
 export const number_field = (params: FieldParam = {}): PrimitiveField => ({
 	type: Number,
-	default: params.default || null,
-
+	default: params.default !== undefined ? params.default : null,
 	validation:
 		params.validation && typeof params.validation === 'function'
 			? params.validation
 			: (v) => v !== null || v === '',
-
 	...field_params(params)
 })
 

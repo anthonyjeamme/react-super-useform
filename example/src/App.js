@@ -41,6 +41,7 @@ box-shadow: 0 0 20px rgba(0,0,0,0.02);
 cursor:pointer;
 color:white;
 outline: none;
+margin:8px 4px;
 
 transition: background-color 150ms;
 &:active{
@@ -143,106 +144,7 @@ const data = {
 		description:
 			"Modèles de chapeaux déposés de fabrication artisanale, originales fabriqués en France, pour des chapeaux  intemporels et porteurs d’émotions. La marque Margotulle  créations authentiques signées Alain Berthoud.\n\nUn mariage prochainement ? \nL'accessoire qui se mariera forcément à votre tenue !\n\nEn 1993 Alain découvre l’association de deux matières le Tulle et le Raphia, la découverte de l’assemblage de ces deux matières sera le démarrage de collections de chapeaux qui depuis 20 ans charme et ravi une clientèle du Sud de la France.\nMargotulle c’est également une collection Hiver, avec un mélange subtil de matières lainages. Une collection spéciale Homme en augmentation chaque année.\nMargotulle diffuse en participant à de nombreux salons Métiers d’Art en France.\nAdhérent actif des Ateliers d’Art de France depuis 2006 ainsi que l’association des créateurs fabricants de chapeaux ACFC.\n\nVenez nous retrouver dans notre Atelier Boutique à Saignon !",
 		search_terms: ['Margotulle', 'Margotulle', 'Saignon', 'Saignon'],
-		gallery: [
-			{
-				infos: { width: 523, height: 800 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fcd',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530526',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fcd',
-				created: '2020-03-13T14:52:12.461Z',
-				__v: 0
-			},
-			{
-				infos: { width: 528, height: 800 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fd0',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530527',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fd0',
-				created: '2020-03-13T14:52:12.543Z',
-				__v: 0
-			},
-			{
-				infos: { width: 800, height: 533 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fd2',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530528',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fd2',
-				created: '2020-03-13T14:52:12.699Z',
-				__v: 0
-			},
-			{
-				infos: { width: 800, height: 533 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fd3',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530529',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fd3',
-				created: '2020-03-13T14:52:12.814Z',
-				__v: 0
-			},
-			{
-				infos: { width: 533, height: 800 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fcf',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530530',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fcf',
-				created: '2020-03-13T14:52:12.541Z',
-				__v: 0
-			},
-			{
-				infos: { width: 800, height: 600 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fce',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530531',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fce',
-				created: '2020-03-13T14:52:12.538Z',
-				__v: 0
-			},
-			{
-				infos: { width: 800, height: 533 },
-				url:
-					'https://cellar-c2.services.clever-cloud.com/monparcours-dev/picture/5e6b9e1c59623208b7596fd1',
-				public_id: null,
-				format: null,
-				parent: '5e6b9e1c59623208b7596fcb',
-				apidae_id: '7530532',
-				isCover: false,
-				type: 'gallery',
-				_id: '5e6b9e1c59623208b7596fd1',
-				created: '2020-03-13T14:52:12.675Z',
-				__v: 0
-			}
-		],
+		gallery: [],
 		informations: [
 			{
 				name: 'À savoir',
@@ -317,276 +219,7 @@ const data = {
 			location: { lng: '5.429406', lat: '43.862373' }
 		},
 		short_id: '9FmmPVSUF',
-		destinations: [
-			{
-				sections: [
-					{
-						categories: { optionals: [], main: '5d42df754eed230685ea3476' },
-						_id: '5e6b9e7059623208b7596fd9',
-						name: 'day'
-					},
-					{
-						categories: { optionals: [] },
-						_id: '5e6b9e7059623208b7596fd8',
-						name: 'cultural_agenda'
-					},
-					{
-						categories: { optionals: [] },
-						_id: '5e6b9e7059623208b7596fd7',
-						name: 'restaurants'
-					},
-					{
-						categories: { optionals: [] },
-						_id: '5e6b9e7059623208b7596fd6',
-						name: 'stays'
-					}
-				],
-				_id: '5e6b9e7059623208b7596fd5',
-				data: {
-					name: "Pays d'Apt Luberon",
-					_id: '5d5063d531d36b081432fd67',
-					sections: [
-						{
-							label: 'En journée',
-							label_as: 'En journée',
-							has_courses: true,
-							categories: [
-								{
-									label_as: 'Musées',
-									order: 1,
-									_id: '5e400b747017db08b981082f',
-									data: {
-										name: 'Musées',
-										optional: false,
-										_id: '5d42a1ef4eed230685ea3406',
-										created: '2019-08-01T08:25:19.456Z',
-										__v: 0,
-										icon: '5e456ea9fca0c708b7f195fe',
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Musees',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Vélo',
-									order: 3,
-									_id: '5e400b747017db08b981082e',
-									data: {
-										name: 'Vélo',
-										optional: false,
-										_id: '5d42a2074eed230685ea3408',
-										icon: '5e456ecbfca0c708b7f195ff',
-										created: '2019-08-01T08:25:43.292Z',
-										__v: 0,
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Velo',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Randonnées',
-									order: 2,
-									_id: '5e400b747017db08b981082d',
-									data: {
-										name: 'Randonnées',
-										optional: false,
-										_id: '5d42a20d4eed230685ea3409',
-										icon: '5e456ed4fca0c708b7f19600',
-										created: '2019-08-01T08:25:49.877Z',
-										__v: 0,
-										_icon: {
-											height: 49,
-											width: 50,
-											public_id: 'activities/categories Randonnees',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Sites et Patrimoines',
-									order: 4,
-									_id: '5e400b747017db08b981082b',
-									data: {
-										name: 'Sites et Patrimoines',
-										optional: false,
-										_id: '5d42df2d4eed230685ea346e',
-										icon: '5e456efdfca0c708b7f19603',
-										created: '2019-08-01T12:46:37.370Z',
-										__v: 0,
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Sites et Patrimoines',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Activités',
-									order: 5,
-									_id: '5e400b747017db08b981082a',
-									data: {
-										name: 'Activités',
-										optional: false,
-										_id: '5d42df3d4eed230685ea3470',
-										icon: '5e456f0bfca0c708b7f19604',
-										created: '2019-08-01T12:46:53.972Z',
-										__v: 0,
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Activites',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Marché',
-									order: 7,
-									_id: '5e400b747017db08b9810829',
-									data: {
-										name: 'Marché',
-										optional: false,
-										_id: '5d42df4b4eed230685ea3472',
-										icon: '5e456f18fca0c708b7f19605',
-										created: '2019-08-01T12:47:07.650Z',
-										__v: 0,
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Marche',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Shopping',
-									order: 8,
-									_id: '5e400b747017db08b9810828',
-									data: {
-										name: 'Shopping',
-										optional: false,
-										_id: '5d42df754eed230685ea3476',
-										icon: '5e456f33fca0c708b7f19607',
-										created: '2019-08-01T12:47:49.703Z',
-										__v: 0,
-										_icon: {
-											height: 44,
-											width: 50,
-											public_id: 'activities/categories Shopping',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Villages',
-									order: 9,
-									_id: '5e400b747017db08b9810827',
-									data: {
-										name: 'Villages',
-										optional: false,
-										_id: '5d42df904eed230685ea3479',
-										icon: '5e456f3ffca0c708b7f19608',
-										created: '2019-08-01T12:48:16.819Z',
-										__v: 0,
-										_icon: {
-											height: 45,
-											width: 50,
-											public_id: 'activities/categories Villages',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Nature Vivante',
-									order: 10,
-									_id: '5e400b747017db08b9810826',
-									data: {
-										name: 'Nature Vivante',
-										optional: false,
-										_id: '5d7e9ba978aae00810c04535',
-										created: '2019-09-15T20:14:33.120Z',
-										__v: 0,
-										icon: '5e456f4bfca0c708b7f19609',
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Nature Vivante',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Bien-Être',
-									order: 11,
-									_id: '5e400b747017db08b9810825',
-									data: {
-										name: 'Bien-Être',
-										optional: false,
-										_id: '5e1af917f4e28a08c4eec234',
-										created: '2020-01-12T10:46:47.889Z',
-										__v: 0,
-										icon: '5e456f54fca0c708b7f1960a',
-										_icon: {
-											height: 50,
-											width: 50,
-											public_id: 'activities/categories Bien Etre',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'En famille',
-									order: 12,
-									_id: '5e400b747017db08b9810824',
-									data: {
-										name: 'En famille',
-										optional: true,
-										_id: '5d42a3d64eed230685ea3415',
-										icon: '5e456fb3fca0c708b7f1960e',
-										created: '2019-08-01T08:33:26.277Z',
-										__v: 0,
-										_icon: {
-											height: 50,
-											width: 45,
-											public_id: 'activities/categories En famille',
-											format: 'png'
-										}
-									}
-								},
-								{
-									label_as: 'Avec animaux',
-									order: 13,
-									_id: '5e400b747017db08b9810823',
-									data: {
-										name: 'Avec animaux',
-										optional: true,
-										_id: '5d42dfae4eed230685ea347b',
-										icon: '5e456fbcfca0c708b7f1960f',
-										created: '2019-08-01T12:48:46.480Z',
-										__v: 0,
-										_icon: {
-											height: 46,
-											width: 50,
-											public_id: 'activities/categories Avec animaux',
-											format: 'png'
-										}
-									}
-								}
-							],
-							_id: '5e400b747017db08b9810822',
-							name: 'day'
-						}
-					]
-				}
-			}
-		],
+
 		highlights: [],
 		created: '2020-03-13T14:52:12.365Z',
 		__v: 0,
@@ -609,12 +242,14 @@ const formSchema = {
 			},
 			pricings_table: {
 				type: Array,
+				min:2,
+				max:4,
 				children: {
 					_id: text_field({ readOnly: true, required:false }),
-					name: text_field(),
-					description: text_field(),
-					tva: text_field(),
-					time_limit: text_field(),
+					name: text_field({default:'NOM DE LA PRESTATION'}),
+					description: text_field({ required: false }),
+					tva: text_field({ required: false }),
+					time_limit: text_field({ required: false }),
 					lang: {
 						force: bool_field(),
 						selection: {
@@ -626,8 +261,8 @@ const formSchema = {
 						type: Array,
 						children: {
 							name: text_field(),
-							selling_price: text_field(),
-							final_price: text_field(),
+							selling_price: text_field({ required: false }),
+							final_price: text_field({ required: false }),
 							tva: text_field({
 								required: true,
 								validation: () => {
@@ -639,10 +274,11 @@ const formSchema = {
 					},
 					pricings: {
 						type: Array,
+						min:2,
 						children: {
-							name: text_field(),
-							selling_price: text_field(),
-							final_price: text_field()
+							name: text_field({default:'RIEN'}),
+							selling_price: text_field({ required: false }),
+							final_price: text_field({ required: false })
 						}
 					}
 				}
@@ -651,51 +287,132 @@ const formSchema = {
 	}
 }
 
+const Hr = () => (
+	<hr style={{height:1, border:0, backgroundColor:'#ddd', margin: "20px 0"}}/>
+)
+
 const App = () => {
 
-	const [json, setJson] = useState(null)
 	const form = useForm(formSchema,data)
 
 	console.log(form.formData)
 
   return (
-	<Container>
+	<div style={{
+		display:'flex',
+		flexDirection:'column',
+		height:'100vh'
+	}}>
 
-		<h1>Form</h1>
+		<div style={{flex:1, overflowY:'auto'}}>
+
+			<Container>
+
+				<h1>Form</h1>
+				
+				<div>
+
+					{
+						form.get('activity.pricings.pricings_table').map(prestation => {
+
+							return (
+								<div style={{
+									margin:'20px 0',
+									padding:20,
+									backgroundColor:'white',
+									position: 'relative'
+								}}>
+
+									<div style={{
+										position:'absolute',
+										top:20,
+										right: 20
+									}}>
+										{
+											prestation.canBeRemoved() && (
+												<button onClick={()=>{
+													prestation.remove()
+												}}>Supprimer</button>
+											)
+										}
+									</div>
+
+									Name
+
+									<br />
+									
+									<Input {...prestation.get('name')} />
+
+									<Hr/>
+
+									<div>
+										{prestation.get('pricings').map(pricing => {
 
 
-		<button onClick={()=>{
+											return (
+												<div>
+													<Input {...pricing.get('name')} />
+												</div>
+											)
+										})}
+									</div>
+								</div>
+							)
+						})
+					}
 
+					<div>
+						{
+							form.get('activity.pricings.pricings_table').canPush() && (
+								
 
-console.log(
-	form.get('activity.pricings.pricings_table').toJSON())
+								<button onClick={()=>{
+									form.get('activity.pricings.pricings_table').push()
+								}}>Nouvelle prestation</button>
+							)
+						}
+					</div>
+					
+				</div>
+
+			</Container>
+		</div>
+
+		<footer style={{
+			backgroundColor:'white',
+			boxShadow:'0 0 20px rgba(0,0,0,0.1)'
 		}}>
-			TEST
-		</button>
+			<Container>
+				
+				<div style={{display:'flex', alignItems:'center'}}>
 
-		<Input {...form.get('activity.title')} />
+					<div style={{flex:1}}>
+ 
+					{
+						form.modified ? '✏️':''
+					}
+
+					{
+						form.isValid ? '✔️':'❌'
+					}
+					</div>
+					<div>
+
+						<StyledButton onClick={()=>{
+							form.checkErrors()
+							}}>Check Errors</StyledButton>
+				
+						<StyledButton onClick={()=>{
+								console.log(form.toJSON().activity.pricings)
+							}}>Export JSON</StyledButton>
+					</div>
 
 
-	<div>
+				</div>
 
-<div>{form.isValid?'valid':'no valid'}</div>
-
-	{
-		form.modified ? 'MODIFIED':'NOT MODIFIED'
-	}
-
-		<StyledButton onClick={()=>{
-			form.checkErrors()
-			}}>Check Errors</StyledButton>
-		
-		<StyledButton onClick={()=>{
-				console.log(form.toJSON())
-				setJson(JSON.stringify(form.toJSON()))
-			}}>Export JSON</StyledButton>
+			</Container>
+		</footer>
 	</div>
-
-		<StyledTextarea value={json} readOnly={true}/>
-	</Container>
   )
 }
 
