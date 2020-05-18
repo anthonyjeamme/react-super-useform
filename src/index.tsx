@@ -97,7 +97,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 		} else {
 			const value =
 				defaultValue &&
-				defaultValue[key] &&
+				defaultValue[key] !== undefined &&
 				typeof defaultValue[key] !== 'object'
 					? defaultValue[key]
 					: schema[key].default || getDefaultOfType(schema[key].type)
@@ -280,7 +280,7 @@ const useForm = (formSchema = {}, initData = null) => {
 				return {
 					value: parent.value,
 					setValue: (value: any) => {
-						updateFunction({ value })
+						updateFunction({ value, error: null })
 					},
 					error: parent.error
 				}
@@ -332,7 +332,8 @@ const useForm = (formSchema = {}, initData = null) => {
 						value: {
 							...parent.value,
 							[key]: v
-						}
+						},
+						error: null
 					})
 				}
 			}
