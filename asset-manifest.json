@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/react-super-useform/static/css/main.8a1a9008.chunk.css",
+    "main.js": "/react-super-useform/static/js/main.84aa52f4.chunk.js",
+    "main.js.map": "/react-super-useform/static/js/main.84aa52f4.chunk.js.map",
+    "runtime-main.js": "/react-super-useform/static/js/runtime-main.6078f799.js",
+    "runtime-main.js.map": "/react-super-useform/static/js/runtime-main.6078f799.js.map",
+    "static/js/2.0552c23f.chunk.js": "/react-super-useform/static/js/2.0552c23f.chunk.js",
+    "static/js/2.0552c23f.chunk.js.map": "/react-super-useform/static/js/2.0552c23f.chunk.js.map",
+    "index.html": "/react-super-useform/index.html",
+    "precache-manifest.5b569c5f9bdf58f8d01139082ce67ce2.js": "/react-super-useform/precache-manifest.5b569c5f9bdf58f8d01139082ce67ce2.js",
+    "service-worker.js": "/react-super-useform/service-worker.js",
+    "static/css/main.8a1a9008.chunk.css.map": "/react-super-useform/static/css/main.8a1a9008.chunk.css.map",
+    "static/js/2.0552c23f.chunk.js.LICENSE.txt": "/react-super-useform/static/js/2.0552c23f.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.6078f799.js",
+    "static/js/2.0552c23f.chunk.js",
+    "static/css/main.8a1a9008.chunk.css",
+    "static/js/main.84aa52f4.chunk.js"
+  ]
+}
