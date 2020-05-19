@@ -4,28 +4,39 @@ Lib is in development. This is an alpha version. ⚠️
 
 # Usage
 
-    import useForm from './useForm.js'
+Installation
 
-And then
+```
+	npm i --save react-super-useform
+```
+
+
+```javascript
+    import useForm from 'react-super-useform'
 
     const form = useForm(formSchema, initData)
+```
 
 # Schema
 
-	const formSchema = {
+```javascript
+const formSchema = {
 
-		comment: text_field(),
-		informations: {
-			fistname: text_field(),
-			lastname: text_field()
-		}
+	comment: text_field(),
+	informations: {
+		fistname: text_field(),
+		lastname: text_field()
 	}
+}
+```
 
 # Connect form
 
-    <Input {...form.get('comment')}/>
-	<Input {...form.get('informations.firstname')}/>
-	<Input {...form.get('informations.lastname')}/>
+```JSX
+<Input {...form.get('comment')}/>
+<Input {...form.get('informations.firstname')}/>
+<Input {...form.get('informations.lastname')}/>
+```
 
 provide 3 props:
 - value
@@ -34,76 +45,100 @@ provide 3 props:
 
 you can make your own like that :
 
-	const Input = ({value, setValue, error}) => (
-		<input value={value} onChange={e=>{
-			setValue(e.target.value)
-		}} className={error?'error':''}/>
-	)
+```JSX
+const Input = ({value, setValue, error}) => (
+	<input value={value} onChange={e=>{
+		setValue(e.target.value)
+	}} className={error?'error':''}/>
+)
+```
 
 # Arrays
 
-    const formSchema = {
-		list:{
-			type: Array,
-			children: {
-				name: text_field()
-			},
-		}
+```javascript
+const formSchema = {
+	list:{
+		type: Array,
+		children: {
+			name: text_field()
+		},
 	}
+}
+```
 
 ## Add element to list
 
-	form.get('list').push()
+```javascript
+form.get('list').push()
+```
 
 ## Get elements
 
-	form.get('list').map((item,i)=>(
-		<Input {...item.get('name')}>
-	))
+```javascript
+form.get('list').map((item,i)=>(
+	<Input {...item.get('name')}>
+))
+```
 
 ## Get one element
 
-	<Input {...form.get('list.0.name')}>
+```JSX
+<Input {...form.get('list.0.name')}>
+```
 
 ## Remove an element
 
-	form.get('list').remove(i)
+
+```javascript
+form.get('list').remove(i)
+```
 
 or
 
-	form.get('list').map((item,i)=>(
-		<>
-			<button onClick={()=>item.remove()}>
-				remove
-			</button>
-		</>
-	))
+```javascript
+form.get('list').map((item,i)=>(
+	<>
+		<button onClick={()=>item.remove()}>
+			remove
+		</button>
+	</>
+))
+```
 
 # Event
 
 You can subscribe to form event :
 
-	const myEvent = e => {
-		console.log('form has been changed')
-	}
+```javascript
+const myEvent = e => {
+	console.log('form has been changed')
+}
 
-	form.addEventListener('change',myEvent)
+form.addEventListener('change',myEvent)
+```
 
 And unsubscribe
 
-	form.removeEventListener('change',myEvent)
-
+```javascript
+form.removeEventListener('change',myEvent)
+```
 
 # Error checking
 
 You can know if data are valid in form by reading :
 
-	form.isValid
+```javascript
+form.isValid
+```
 
 You can make a check, that set errors on each field list this :
 
-	form.checkErrors()
+```javascript
+form.checkErrors()
+```
 
 # Output
 
-	form.toJSON()
+```javascript
+form.toJSON()
+```
