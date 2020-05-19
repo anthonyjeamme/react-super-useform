@@ -7,14 +7,14 @@ Lib is in development. This is an alpha version. ⚠️
 Installation
 
 ```
-	npm i --save react-super-useform
+npm i --save react-super-useform
 ```
 
 
 ```javascript
-    import useForm from 'react-super-useform'
+import useForm from 'react-super-useform'
 
-    const form = useForm(formSchema, initData)
+const form = useForm(formSchema, initData)
 ```
 
 # Schema
