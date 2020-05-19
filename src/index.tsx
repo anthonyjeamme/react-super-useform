@@ -190,6 +190,21 @@ const useForm = (formSchema = {}, initData = null) => {
 
 										return true
 									},
+									set: (data: any) => {
+										const _ = getDataFromSchemaAndDefault(
+											parent.childrenSchema,
+											data
+										)
+
+										updateFunction({
+											...parent,
+											children: parent.children.map((_child: any, _i: any) =>
+												i === _i ? _ : _child
+											)
+										})
+
+										console.log('TODO', _)
+									},
 									remove: (): any => {
 										if (parent.readOnly) return false
 										if (parent.min && parent.children.length <= parent.min) {
