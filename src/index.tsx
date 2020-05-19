@@ -396,7 +396,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const path = name.split('.')
 
 		return recursiveGet(formData, path, (data: any) => {
-			callEvents('change', data)
+			callEvents('change', recursiveToJSON(data))
 			setModified(true)
 			setFormData({
 				...formData,
