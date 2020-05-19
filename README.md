@@ -71,7 +71,6 @@ you can make your own like that :
 
 or
 
-
 	form.get('list').map((item,i)=>(
 		<>
 			<button onClick={()=>item.remove()}>
@@ -79,6 +78,21 @@ or
 			</button>
 		</>
 	))
+
+# Event
+
+You can subscribe to form event :
+
+	const myEvent = e => {
+		console.log('form has been changed')
+	}
+
+	form.addEventListener('change',myEvent)
+
+And unsubscribe
+
+	form.removeEventListener('change',myEvent)
+
 
 # Error checking
 

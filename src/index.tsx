@@ -133,6 +133,12 @@ const generateDataFromSchema = (schema: any, defaultValue: any) => {
 	return getDataFromSchemaAndDefault(schema, defaultValue)
 }
 
+type EventName = 'change' | 'submit'
+
+type FormEvent = Array<{
+	event: string
+	callback: (e: any) => null
+}>
 /**
  *
  * @param {*} formSchema
@@ -142,8 +148,8 @@ const useForm = (formSchema = {}, initData = null) => {
 	const [formData, setFormData] = useState(
 		generateDataFromSchema(formSchema, initData)
 	)
-
 	const [modified, setModified] = useState(false)
+	const [events, setEvents] = useState<FormEvent>([])
 
 	const recursiveGet = (
 		parent: any,
@@ -390,6 +396,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const path = name.split('.')
 
 		return recursiveGet(formData, path, (data: any) => {
+			callEvents('change', data)
 			setModified(true)
 			setFormData({
 				...formData,
@@ -522,6 +529,37 @@ const useForm = (formSchema = {}, initData = null) => {
 		if (!recursiveErrorCheck(formData)) e.preventDefault()
 	}
 
+	const callEvents = (eventName: EventName, payload: any) => {
+		events
+			.filter((event) => event.event === eventName)
+			.forEach((event) => {
+				event.callback(payload)
+			})
+	}
+
+	const addEventListener = (event: EventName, callback: (e: any) => null) => {
+		if (events.find((e) => e.event === event && e.callback === callback)) return
+
+		setEvents([
+			...events,
+			{
+				event,
+				callback
+			}
+		])
+	}
+	const removeEventListener = (
+		event: EventName,
+		callback: (e: any) => null
+	) => {
+		setEvents(
+			events.filter((e) => {
+				if (e.event === event && e.callback === callback) return false
+				return true
+			})
+		)
+	}
+
 	return {
 		isValid,
 		checkErrors,
@@ -530,7 +568,9 @@ const useForm = (formSchema = {}, initData = null) => {
 		handleSubmit,
 		formData,
 		modified,
-		setModified
+		setModified,
+		addEventListener,
+		removeEventListener
 	}
 }
 
