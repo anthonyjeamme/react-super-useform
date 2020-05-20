@@ -33,7 +33,7 @@ export const text_field = (params: FieldParam = {}): PrimitiveField => ({
 	validation:
 		params.validation && typeof params.validation === 'function'
 			? params.validation
-			: (s: string) => s.length > 0,
+			: (s: string) => s !== null && s.length > 0,
 
 	default: params.default !== undefined ? params.default : '',
 	...field_params(params)

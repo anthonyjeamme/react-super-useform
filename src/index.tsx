@@ -7,7 +7,7 @@
  * @author: anthonyjeamme
  */
 
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 
 export const STRING_NOT_EMPTY_VALIDATION = (s: string) =>
 	typeof s === 'string' && s.length > 0
@@ -16,17 +16,22 @@ const getDefaultOfType = (type: any) => {
 	return type === String ? '' : type === Boolean ? false : null
 }
 
-const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
+const getDataFromSchemaAndDefault = (
+	schema: any,
+	defaultValue: any,
+	parent: any
+): any => {
 	if (schema.type) {
 		if (schema.type === Array) {
 			return getDataFromSchemaAndDefault(
 				{
-					a: schema
+					_: schema
 				},
 				{
-					a: defaultValue
-				}
-			).a
+					_: defaultValue
+				},
+				parent
+			)._
 		}
 
 		const value =
@@ -35,6 +40,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 				: schema.default || getDefaultOfType(schema.type)
 
 		return {
+			__parent: parent,
 			type: schema.type,
 			value,
 			error: false,
@@ -43,15 +49,29 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 		}
 	}
 
-	const _ = {}
+	const _ = {
+		__parent: parent
+	}
 
 	Object.keys(schema).forEach((key) => {
 		if (!schema[key].type) {
-			_[key] = generateDataFromSchema(
+			_[key] = getDataFromSchemaAndDefault(
 				schema[key],
-				defaultValue && defaultValue[key] && defaultValue[key]
+				defaultValue && defaultValue[key] && defaultValue[key],
+				_
 			)
 		} else if (schema[key].type === Array) {
+			_[key] = {
+				type: Array,
+				childrenSchema: schema[key].children,
+				schema: schema[key],
+				readOnly: schema[key].readOnly,
+				validation: schema[key].validation || (() => true),
+				max: schema[key].max || Infinity,
+				min: schema[key].min || 0,
+				__parent: _
+			}
+
 			const children =
 				defaultValue &&
 				defaultValue[key] &&
@@ -62,16 +82,17 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 							type: schema[key].children.type,
 							error: false,
 							required: schema[key].children.required === true,
-							validation: schema[key].children.validation || (() => true)
+							validation: schema[key].children.validation || (() => true),
+							__parent: _[key]
 					  }))
 					: defaultValue &&
 					  defaultValue[key] &&
 					  Array.isArray(defaultValue[key])
 					? defaultValue[key].map((child: any) =>
-							getDataFromSchemaAndDefault(schema[key].children, child)
+							getDataFromSchemaAndDefault(schema[key].children, child, _[key])
 					  )
 					: (schema[key].default || []).map((child: any) =>
-							getDataFromSchemaAndDefault(schema[key].children, child)
+							getDataFromSchemaAndDefault(schema[key].children, child, _[key])
 					  ) || []
 
 			if (schema[key].min) {
@@ -79,21 +100,14 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 					const nChildrenToAdd = schema[key].min - children.length
 
 					for (let i = 0; i < nChildrenToAdd; i++) {
-						children.push(getDataFromSchemaAndDefault(schema[key].children, {}))
+						children.push(
+							getDataFromSchemaAndDefault(schema[key].children, {}, _[key])
+						)
 					}
 				}
 			}
 
-			_[key] = {
-				type: Array,
-				children,
-				childrenSchema: schema[key].children,
-				schema: schema[key],
-				readOnly: schema[key].readOnly,
-				validation: schema[key].validation || (() => true),
-				max: schema[key].max || Infinity,
-				min: schema[key].min || 0
-			}
+			_[key].children = children
 		} else {
 			const value =
 				defaultValue &&
@@ -107,7 +121,8 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 				value,
 				error: false,
 				required: schema[key].required === true,
-				validation: schema[key].validation || (() => true)
+				validation: schema[key].validation || (() => true),
+				__parent: _
 			}
 		}
 	})
@@ -120,7 +135,8 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 					value: defaultValue[key],
 					error: false,
 					required: false,
-					validation: () => true
+					validation: () => true,
+					__parent: 'c'
 				}
 			}
 		})
@@ -130,7 +146,7 @@ const getDataFromSchemaAndDefault = (schema: any, defaultValue: any): any => {
 }
 
 const generateDataFromSchema = (schema: any, defaultValue: any) => {
-	return getDataFromSchemaAndDefault(schema, defaultValue)
+	return getDataFromSchemaAndDefault(schema, defaultValue, null)
 }
 
 type EventName = 'change' | 'submit'
@@ -158,6 +174,15 @@ const useForm = (formSchema = {}, initData = null) => {
 		pathHistory: string[] = path
 	): any => {
 		if (path.length === 0) {
+			if (parent === undefined) {
+				console.error(
+					`[react-super-useform] can't find '${[...pathHistory, ...path].join(
+						'.'
+					)}'`
+				)
+				return null
+			}
+
 			if (parent.type === Array) {
 				return {
 					error: parent.error,
@@ -193,7 +218,8 @@ const useForm = (formSchema = {}, initData = null) => {
 									set: (data: any) => {
 										const _ = getDataFromSchemaAndDefault(
 											parent.childrenSchema,
-											data
+											data,
+											parent
 										)
 
 										updateFunction({
@@ -202,8 +228,6 @@ const useForm = (formSchema = {}, initData = null) => {
 												i === _i ? _ : _child
 											)
 										})
-
-										console.log('TODO', _)
 									},
 									remove: (): any => {
 										if (parent.readOnly) return false
@@ -226,13 +250,14 @@ const useForm = (formSchema = {}, initData = null) => {
 					},
 					toJSON: () => recursiveToJSON(parent),
 					set: (data: any) => {
-						const _ = getDataFromSchemaAndDefault(parent.schema, data)
+						const _ = getDataFromSchemaAndDefault(
+							parent.schema,
+							data,
+							parent.__parent
+						)
 						updateFunction(_)
 					},
-					// TODO make possibility to get '0.name' ??
 					get: (i: number): any => {
-						// return parent.children[i]
-
 						return recursiveGet(
 							parent.children[i],
 							[],
@@ -270,7 +295,8 @@ const useForm = (formSchema = {}, initData = null) => {
 
 						const newField = getDataFromSchemaAndDefault(
 							parent.childrenSchema,
-							item
+							item,
+							parent
 						)
 
 						updateFunction({
@@ -301,9 +327,9 @@ const useForm = (formSchema = {}, initData = null) => {
 				return {
 					value: parent.value,
 					setValue: (value: any) => {
-						updateFunction({ value, error: null })
+						updateFunction({ value, __error: null })
 					},
-					error: parent.error
+					error: parent.__error
 				}
 			} else {
 				return {
@@ -323,10 +349,34 @@ const useForm = (formSchema = {}, initData = null) => {
 				}
 			}
 		}
-
 		if (!parent) {
-			console.error(`unknown field '${pathHistory.join('.')}'`)
+			console.error(
+				`[react-super-useform] can't find '${pathHistory.join('.')}'`
+			)
 			return null
+		}
+
+		if (path[0] === 'parent') {
+			if (parent.__parent === null) {
+				console.error(
+					`[react-super-useform] can't find '${pathHistory.join('.')}'`
+				)
+			}
+
+			return recursiveGet(
+				parent.__parent,
+				path.slice(1),
+				(data: any) => {
+					updateFunction({
+						...parent,
+						[path[0]]: {
+							...parent[path[0]],
+							...data
+						}
+					})
+				},
+				pathHistory
+			)
 		}
 
 		if (parent.type === Object) {
@@ -350,11 +400,12 @@ const useForm = (formSchema = {}, initData = null) => {
 				setValue: (v: any) => {
 					updateFunction({
 						...parent,
+						__parent: 'BBB',
 						value: {
 							...parent.value,
 							[key]: v
 						},
-						error: null
+						__error: null
 					})
 				}
 			}
@@ -363,6 +414,13 @@ const useForm = (formSchema = {}, initData = null) => {
 		if (parent.type === Array) {
 			const [index, key] = path
 
+			if (!key) {
+				// TODO when we call get('parent') in validation function,
+				//   and parent is Array
+				return null
+			}
+
+			console.log('GET ARRAY', path, parent)
 			if (!parent.children[index]) {
 				console.error(`cannot find index ${index} on ${pathHistory.join('.')}`)
 				return
@@ -394,13 +452,24 @@ const useForm = (formSchema = {}, initData = null) => {
 				parent[path[0]],
 				path.slice(1),
 				(data: any) => {
-					updateFunction({
+					const updatedData = {
 						...parent,
 						[path[0]]: {
 							...parent[path[0]],
 							...data
 						}
+					}
+
+					Object.keys(updatedData).forEach((key) => {
+						if (
+							['__parent', '__error'].includes(key) ||
+							typeof key === 'object'
+						)
+							return
+						updatedData[key].__parent = updatedData
 					})
+
+					updateFunction(updatedData)
 				},
 				pathHistory
 			)
@@ -410,54 +479,94 @@ const useForm = (formSchema = {}, initData = null) => {
 	const get = (name: string) => {
 		const path = name.split('.')
 
-		return recursiveGet(formData, path, (data: any) => {
-			callEvents('change', recursiveToJSON(data))
-			setModified(true)
-			setFormData({
-				...formData,
-				...data
-			})
-		})
+		return recursiveGet(
+			formData,
+			path,
+			(data: any) => {
+				callEvents('change', recursiveToJSON(data))
+				setModified(true)
+				setFormData({
+					...formData,
+					...data
+				})
+			},
+			[]
+		)
 	}
 
-	const checkErrors = () => {
-		setFormData(recursiveUpdateError(formData))
-	}
+	const checkErrors = useCallback(() => {
+		const result = recursiveUpdateError(formData)
+
+		setFormData(result)
+	}, [formData])
 
 	const recursiveUpdateError = (data: any) => {
 		if (data.type === Array) {
 			const error =
 				data.children.length < data.min || !recursiveErrorCheck(data)
 
-			return {
+			const result = {
 				...data,
 				children: data.children.map(recursiveUpdateError),
 				error
 			}
+
+			result.children = result.children.map((child: any) => ({
+				...child,
+				__parent: result
+			}))
+
+			return result
 		}
 
 		if (data.type) {
 			if (data.validation) {
 				if (!data.required) {
-					if (!data.value)
-						return {
+					if (!data.value) {
+						const result = {
 							...data,
-							error: null
+							__error: null
 						}
+
+						Object.keys(result).forEach((key) => {
+							if (['__error', '__parent'].includes(key)) return
+
+							if (
+								result[key] &&
+								typeof result[key] === 'object' &&
+								!Array.isArray(result[key])
+							)
+								result[key].__parent = result
+						})
+
+						return result
+					}
 				}
+
 				if (
 					data.validation &&
 					typeof data.validation === 'function' &&
-					!data.validation(data.value)
+					!data.validation(data.value, (pathString: string) => {
+						const path = pathString.split('.')
+
+						return recursiveGet(
+							path[0] === 'parent' ? data.__parent : formData,
+							path.slice(1),
+							() => {},
+							[]
+						)
+					})
 				) {
-					return {
+					const result = {
 						...data,
-						error: true
+						__error: true
 					}
+
+					return result
 				} else {
 					return {
 						...data,
-						error: null
+						__error: null
 					}
 				}
 			}
@@ -465,13 +574,16 @@ const useForm = (formSchema = {}, initData = null) => {
 			return data
 		}
 
-		const _data: any = {}
+		const _data: any = { __parent: null }
 
 		Object.keys(data).forEach((key) => {
+			if (['__error', '__parent'].includes(key)) return
+
 			_data[key] = recursiveUpdateError(data[key])
+			_data[key].__parent = _data
 		})
 
-		_data.__error = !recursiveErrorCheck(data)
+		_data.__error = !recursiveErrorCheck(data) // TODO performance optimization oportunity
 
 		return _data
 	}
@@ -494,9 +606,17 @@ const useForm = (formSchema = {}, initData = null) => {
 		if (data.type) {
 			if (data.validation) {
 				if (!data.required && !data.value) return true
-
 				if (typeof data.validation !== 'function') return true
-				return data.validation(data.value)
+
+				return data.validation(data.value, (pathString: string) => {
+					const path = pathString.split('.')
+					return recursiveGet(
+						path[0] === 'parent' ? data.__parent : formData,
+						path.slice(1),
+						() => {},
+						[]
+					)
+				})
 			}
 			return true
 		}
@@ -504,6 +624,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		let isValid = true
 
 		Object.keys(data).forEach((key) => {
+			if (key === '__parent') return
+
 			if (!recursiveErrorCheck(data[key])) {
 				isValid = false
 			}
@@ -523,7 +645,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = {}
 
 		Object.keys(data).forEach((key) => {
-			if (key === '__error') return
+			if (['__error', '__parent'].includes(key)) return
 
 			_data[key] = recursiveToJSON(data[key])
 			if (data[key].___payload) {
@@ -538,7 +660,9 @@ const useForm = (formSchema = {}, initData = null) => {
 		return recursiveToJSON(formData)
 	}
 
-	const isValid: boolean = recursiveErrorCheck(formData)
+	const isValid: boolean = useMemo(() => recursiveErrorCheck(formData), [
+		formData
+	])
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		if (!recursiveErrorCheck(formData)) e.preventDefault()
