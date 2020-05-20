@@ -50,7 +50,8 @@ const getDataFromSchemaAndDefault = (
 	}
 
 	const _ = {
-		__parent: parent
+		__parent: parent,
+		__schema: schema
 	}
 
 	Object.keys(schema).forEach((key) => {
@@ -345,7 +346,22 @@ const useForm = (formSchema = {}, initData = null) => {
 							pathHistory
 						)
 					},
-					toJSON: () => recursiveToJSON(parent)
+					toJSON: () => recursiveToJSON(parent),
+					set: (data: any) => {
+						console.log(parent.__schema)
+						console.log(data, 'TODO')
+
+						const newField = getDataFromSchemaAndDefault(
+							parent.__schema,
+							data,
+							parent
+						)
+						updateFunction({
+							...newField
+						})
+
+						console.log(newField)
+					}
 				}
 			}
 		}
@@ -462,7 +478,7 @@ const useForm = (formSchema = {}, initData = null) => {
 
 					Object.keys(updatedData).forEach((key) => {
 						if (
-							['__parent', '__error'].includes(key) ||
+							['__error', '__parent', '__schema'].includes(key) ||
 							typeof key === 'object'
 						)
 							return
@@ -529,7 +545,7 @@ const useForm = (formSchema = {}, initData = null) => {
 						}
 
 						Object.keys(result).forEach((key) => {
-							if (['__error', '__parent'].includes(key)) return
+							if (['__error', '__parent', '__schema'].includes(key)) return
 
 							if (
 								result[key] &&
@@ -577,7 +593,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = { __parent: null }
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent'].includes(key)) return
+			if (['__error', '__parent', '__schema'].includes(key)) return
 
 			_data[key] = recursiveUpdateError(data[key])
 			_data[key].__parent = _data
@@ -624,7 +640,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		let isValid = true
 
 		Object.keys(data).forEach((key) => {
-			if (key === '__parent') return
+			if (['__error', '__parent', '__schema'].includes(key)) return
 
 			if (!recursiveErrorCheck(data[key])) {
 				isValid = false
@@ -645,7 +661,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = {}
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent'].includes(key)) return
+			if (['__error', '__parent', '__schema'].includes(key)) return
 
 			_data[key] = recursiveToJSON(data[key])
 			if (data[key].___payload) {
