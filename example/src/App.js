@@ -83,20 +83,94 @@ const formSchema = {
 			tags:{
 				type: Array,
 				min:2,
-				children: text_field()
-			}
+				children: text_field({
+					validation:(value, get) => {
+
+						console.log(get('parent.0'))
+
+						return value.length > 3
+					}
+				})
+			},
+			has_rank: bool_field(),
+			rank: text_field({
+				validation:(value, get) => {
+
+					if(get('parent.has_rank').value === false) return true
+					return value.length > 5
+
+				}
+			}),
+			tags_enabled: bool_field()
 		}
+	},
+
+	a:{
+		b:{
+			name: text_field(),
+			ok:text_field(),
+			z:text_field({
+				default:'recursive is OP'
+			})
+		}
+	},
+	list:{
+		type: Array,
+		children: {
+			name: text_field()
+		},
+		min:7,max:7,
+		 default: [{ name: 'lundi' },
+		 { name: 'mardi' },
+		 { name: 'mercredi' },
+		 { name: 'jeudi' },
+		 { name: 'vendredi' },
+		 { name: 'samedi' },
+		 { name: 'dimanche' }
+		 ]
 	}
+	// a:{
+	// 	type: Array,
+	// 	children: text_field(),
+	// 	min: 1
+	// },
+	
+	// b:{
+	// 	type: Array,
+	// 	min:66,
+	// 	children: {
+	// 		arr:{
+	// 			type:Array,
+	// 			children: text_field()}
+	// 	},
+	// },
+	// test:{
+	// 	name:text_field({
+	// 		validation:(value, get) => {
+	// 			const checked = get('test.checked').value
+
+	// 			if(!checked) return true
+	// 			return value.length > 5
+	// 		}
+	// 	}),
+	// 	checked: bool_field()
+	// }
 }
 
 const Hr = () => (
 	<hr style={{height:1, border:0, backgroundColor:'#ddd', margin: "20px 0"}}/>
 )
 
+const Checkbox = ({value,setValue}) => {
+
+	return <input type="checkbox" checked={value===true} onChange={()=>{
+		setValue(!value)
+	}}/>
+}
+
 const App = () => {
 
 	const form = useForm(formSchema,data)
-
 
 	useEffect(()=>{
 
@@ -106,6 +180,9 @@ const App = () => {
 		})
 	},[])
 
+
+	// console.log(form.get('test').get('parent.test.name'))
+	// console.log(form.formData)
 
   return (
 	<div style={{
@@ -118,9 +195,21 @@ const App = () => {
 
 			<Container>
 
+				<div style={{height:100}}></div>
+
+				<Hr/>
+
+				{
+					form.get('list').map(item => (
+						<div>
+							<Input {...item.get('name')} />
+						</div>
+					))
+				}
+
 				<h1>My best movies</h1>
 				
-				{
+				  {
 					form.get('movies').map(movie => (
 
 
@@ -138,10 +227,19 @@ const App = () => {
 								<Input {...movie.get('date')} />
 							</div>
 
-							<hr/>
+							<Hr />
+
+							<Input {...movie.get('rank')} />
+							<Checkbox {...movie.get('has_rank')}/>
+							<Hr/>
 							<div>
 
 								<h2>Tags</h2>
+
+								<div>
+
+									Activate tags <Checkbox {...movie.get('tags_enabled')} />
+								</div>
 
 								{movie.get('tags').map(tag => (
 									<Input {...tag} />
@@ -154,10 +252,40 @@ const App = () => {
 								)}>Add a tag</button>
 
 							</div>
+
+							{/* <button onClick={()=>{
+
+								// movie.set({
+								// 	name:'terminator', date:'1985',
+								// 	tags:['violence','action','vieux']
+								// })
+
+								movie.get('tags').set(['a','b'])
+
+							}}>Rude set</button> */}
 						</div>
 
 					))
-				}
+				}  
+
+
+				<Input {...form.get('a.b.name')} />
+				<Input {...form.get('a.b.ok')} />
+
+				<Input {...form.get('a.b.z')} />
+
+
+				<button onClick={()=>{
+
+					form.get('a').set({
+						b:{
+							name:"XXX",
+							ok:'okok'
+						}
+					})
+				}}>
+					SET !
+				</button>
 
 				<hr />
 
@@ -165,7 +293,6 @@ const App = () => {
 					form.get('movies').push()
 				}}>Add a movie</button>
 		
-
 			</Container>
 		</div>
 

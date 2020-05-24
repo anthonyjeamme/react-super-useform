@@ -99,10 +99,14 @@ const getDataFromSchemaAndDefault = (
 			if (schema[key].min) {
 				if (children.length < schema[key].min) {
 					const nChildrenToAdd = schema[key].min - children.length
-
+					// TODO i thing something doesn't works here when default + min
 					for (let i = 0; i < nChildrenToAdd; i++) {
 						children.push(
-							getDataFromSchemaAndDefault(schema[key].children, {}, _[key])
+							getDataFromSchemaAndDefault(
+								schema[key].children,
+								defaultValue ? defaultValue[key] : {},
+								_[key]
+							)
 						)
 					}
 				}
@@ -348,9 +352,6 @@ const useForm = (formSchema = {}, initData = null) => {
 					},
 					toJSON: () => recursiveToJSON(parent),
 					set: (data: any) => {
-						console.log(parent.__schema)
-						console.log(data, 'TODO')
-
 						const newField = getDataFromSchemaAndDefault(
 							parent.__schema,
 							data,
@@ -359,8 +360,6 @@ const useForm = (formSchema = {}, initData = null) => {
 						updateFunction({
 							...newField
 						})
-
-						console.log(newField)
 					}
 				}
 			}
@@ -436,7 +435,6 @@ const useForm = (formSchema = {}, initData = null) => {
 				return null
 			}
 
-			console.log('GET ARRAY', path, parent)
 			if (!parent.children[index]) {
 				console.error(`cannot find index ${index} on ${pathHistory.join('.')}`)
 				return
@@ -597,6 +595,7 @@ const useForm = (formSchema = {}, initData = null) => {
 
 			_data[key] = recursiveUpdateError(data[key])
 			_data[key].__parent = _data
+			_data[key].__schema = data[key].__schema
 		})
 
 		_data.__error = !recursiveErrorCheck(data) // TODO performance optimization oportunity
@@ -715,6 +714,34 @@ const useForm = (formSchema = {}, initData = null) => {
 		)
 	}
 
+	const recursiveLogErrors = (root: any, path: Array<string>) => {
+		if (
+			root.__error ||
+			root.error /* TODO rename error to __error on Array type ? */
+		) {
+			if (root.type === Array) {
+				root.children.forEach((child: any, i: number) => {
+					recursiveLogErrors(child, [...path, `${i}`])
+				})
+			} else if (root.type) {
+				if (root.__error) {
+					console.log(`Error on '${path.join('.')}'`)
+				}
+			} else {
+				Object.keys(root)
+					.filter((key) => !['__error', '__parent', '__schema'].includes(key))
+					.forEach((key) => {
+						recursiveLogErrors(root[key], [...path, key])
+					})
+			}
+		}
+	}
+
+	const logErrors = () => {
+		console.log(formData)
+		recursiveLogErrors(formData, [])
+	}
+
 	return {
 		isValid,
 		checkErrors,
@@ -725,7 +752,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		modified,
 		setModified,
 		addEventListener,
-		removeEventListener
+		removeEventListener,
+		logErrors
 	}
 }
 
