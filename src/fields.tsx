@@ -29,7 +29,6 @@ type PrimitiveField = {
 
 export const text_field = (params: FieldParam = {}): PrimitiveField => ({
 	type: String,
-
 	validation:
 		params.validation && typeof params.validation === 'function'
 			? params.validation

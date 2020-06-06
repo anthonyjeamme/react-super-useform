@@ -8,12 +8,20 @@
  */
 
 import { useState, useMemo, useCallback } from 'react'
+import uniqid from 'uniqid'
 
 export const STRING_NOT_EMPTY_VALIDATION = (s: string) =>
 	typeof s === 'string' && s.length > 0
 
 const getDefaultOfType = (type: any) => {
 	return type === String ? '' : type === Boolean ? false : null
+}
+
+function readDefault(defaultValue: any) {
+	if (typeof defaultValue === 'function') {
+		return defaultValue()
+	}
+	return defaultValue
 }
 
 const getDataFromSchemaAndDefault = (
@@ -70,6 +78,7 @@ const getDataFromSchemaAndDefault = (
 				validation: schema[key].validation || (() => true),
 				max: schema[key].max || Infinity,
 				min: schema[key].min || 0,
+				constrainMinMax: schema[key].constrainMinMax || false,
 				__parent: _
 			}
 
@@ -89,25 +98,36 @@ const getDataFromSchemaAndDefault = (
 					: defaultValue &&
 					  defaultValue[key] &&
 					  Array.isArray(defaultValue[key])
-					? defaultValue[key].map((child: any) =>
-							getDataFromSchemaAndDefault(schema[key].children, child, _[key])
-					  )
-					: (schema[key].default || []).map((child: any) =>
-							getDataFromSchemaAndDefault(schema[key].children, child, _[key])
-					  ) || []
+					? defaultValue[key].map((child: any) => ({
+							...getDataFromSchemaAndDefault(
+								schema[key].children,
+								child,
+								_[key]
+							),
+							__id: uniqid()
+					  }))
+					: (schema[key].default || []).map((child: any) => ({
+							...getDataFromSchemaAndDefault(
+								schema[key].children,
+								child,
+								_[key]
+							),
+							__id: uniqid()
+					  })) || []
 
-			if (schema[key].min) {
+			if (schema[key].min && schema[key].constrainMinMax) {
 				if (children.length < schema[key].min) {
 					const nChildrenToAdd = schema[key].min - children.length
 					// TODO i thing something doesn't works here when default + min
 					for (let i = 0; i < nChildrenToAdd; i++) {
-						children.push(
-							getDataFromSchemaAndDefault(
+						children.push({
+							...getDataFromSchemaAndDefault(
 								schema[key].children,
 								defaultValue ? defaultValue[key] : {},
 								_[key]
-							)
-						)
+							),
+							__id: uniqid()
+						})
 					}
 				}
 			}
@@ -118,8 +138,10 @@ const getDataFromSchemaAndDefault = (
 				defaultValue &&
 				defaultValue[key] !== undefined &&
 				typeof defaultValue[key] !== 'object'
-					? defaultValue[key]
-					: schema[key].default || getDefaultOfType(schema[key].type)
+					? readDefault(defaultValue[key])
+					: schema[key].default
+					? readDefault(schema[key].default)
+					: getDefaultOfType(schema[key].type)
 
 			_[key] = {
 				type: schema[key].type,
@@ -192,7 +214,7 @@ const useForm = (formSchema = {}, initData = null) => {
 				return {
 					error: parent.error,
 					length: parent.children.length,
-					map: (func: (child: any, i: number) => any) => {
+					map: (func: (child: any, i: number, id: string) => any) => {
 						return parent.children.map((child: any, i: number) => {
 							return func(
 								{
@@ -215,7 +237,11 @@ const useForm = (formSchema = {}, initData = null) => {
 										pathHistory
 									),
 									canBeRemoved: (): boolean => {
-										if (parent.min && parent.children.length <= parent.min)
+										if (
+											parent.min &&
+											parent.children.length <= parent.min &&
+											parent.constrainMinMax
+										)
 											return false
 
 										return true
@@ -236,7 +262,11 @@ const useForm = (formSchema = {}, initData = null) => {
 									},
 									remove: (): any => {
 										if (parent.readOnly) return false
-										if (parent.min && parent.children.length <= parent.min) {
+										if (
+											parent.min &&
+											parent.children.length <= parent.min &&
+											parent.constrainMinMax
+										) {
 											console.warn('Impossible to delete')
 											return false
 										}
@@ -249,7 +279,8 @@ const useForm = (formSchema = {}, initData = null) => {
 										})
 									}
 								},
-								i
+								i,
+								child.__id
 							)
 						})
 					},
@@ -304,6 +335,8 @@ const useForm = (formSchema = {}, initData = null) => {
 							parent
 						)
 
+						newField.__id = uniqid()
+
 						updateFunction({
 							...parent,
 							children: [...parent.children, newField]
@@ -311,7 +344,11 @@ const useForm = (formSchema = {}, initData = null) => {
 					},
 					canRemove: (): boolean => {
 						if (parent.readOnly) return false
-						if (parent.min && parent.children.length <= parent.min) {
+						if (
+							parent.min &&
+							parent.children.length <= parent.min &&
+							parent.constrainMinMax
+						) {
 							return false
 						}
 						return true
@@ -353,7 +390,7 @@ const useForm = (formSchema = {}, initData = null) => {
 					toJSON: () => recursiveToJSON(parent),
 					set: (data: any) => {
 						const newField = getDataFromSchemaAndDefault(
-							parent.__schema,
+							parent.__schema || parent.schema,
 							data,
 							parent
 						)
@@ -476,7 +513,7 @@ const useForm = (formSchema = {}, initData = null) => {
 
 					Object.keys(updatedData).forEach((key) => {
 						if (
-							['__error', '__parent', '__schema'].includes(key) ||
+							['__error', '__parent', '__schema', '__id'].includes(key) ||
 							typeof key === 'object'
 						)
 							return
@@ -543,7 +580,8 @@ const useForm = (formSchema = {}, initData = null) => {
 						}
 
 						Object.keys(result).forEach((key) => {
-							if (['__error', '__parent', '__schema'].includes(key)) return
+							if (['__error', '__parent', '__schema', '__id'].includes(key))
+								return
 
 							if (
 								result[key] &&
@@ -588,16 +626,17 @@ const useForm = (formSchema = {}, initData = null) => {
 			return data
 		}
 
-		const _data: any = { __parent: null }
+		const _data: any = { ...data }
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent', '__schema'].includes(key)) return
+			if (['__error', '__parent', '__schema', '__id'].includes(key)) return
 
 			_data[key] = recursiveUpdateError(data[key])
 			_data[key].__parent = _data
 			_data[key].__schema = data[key].__schema
 		})
 
+		_data.__schema = data.__schema
 		_data.__error = !recursiveErrorCheck(data) // TODO performance optimization oportunity
 
 		return _data
@@ -639,7 +678,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		let isValid = true
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent', '__schema'].includes(key)) return
+			if (['__error', '__parent', '__schema', '__id'].includes(key)) return
 
 			if (!recursiveErrorCheck(data[key])) {
 				isValid = false
@@ -660,7 +699,7 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = {}
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent', '__schema'].includes(key)) return
+			if (['__error', '__parent', '__schema', '__id'].includes(key)) return
 
 			_data[key] = recursiveToJSON(data[key])
 			if (data[key].___payload) {
@@ -729,7 +768,9 @@ const useForm = (formSchema = {}, initData = null) => {
 				}
 			} else {
 				Object.keys(root)
-					.filter((key) => !['__error', '__parent', '__schema'].includes(key))
+					.filter(
+						(key) => !['__error', '__parent', '__schema', '__id'].includes(key)
+					)
 					.forEach((key) => {
 						recursiveLogErrors(root[key], [...path, key])
 					})
@@ -738,7 +779,6 @@ const useForm = (formSchema = {}, initData = null) => {
 	}
 
 	const logErrors = () => {
-		console.log(formData)
 		recursiveLogErrors(formData, [])
 	}
 
