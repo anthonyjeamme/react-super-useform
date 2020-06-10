@@ -654,6 +654,27 @@ const useForm = (formSchema = {}, initData = null) => {
 				}
 			})
 
+			console.log(data.validation, '!!!!')
+
+			if (data.validation) {
+				if (typeof data.validation !== 'function') return true
+
+				const result = data.validation(
+					recursiveToJSON(data),
+					(pathString: string) => {
+						const path = pathString.split('.')
+						return recursiveGet(
+							path[0] === 'parent' ? data.__parent : formData,
+							path.slice(1),
+							() => {},
+							[]
+						)
+					}
+				)
+
+				if (!result) isValid = false
+			}
+
 			return isValid
 		}
 
@@ -759,6 +780,10 @@ const useForm = (formSchema = {}, initData = null) => {
 			root.error /* TODO rename error to __error on Array type ? */
 		) {
 			if (root.type === Array) {
+				if (root.__error) {
+					console.log(`Error on '${path.join('.')}'`)
+				}
+
 				root.children.forEach((child: any, i: number) => {
 					recursiveLogErrors(child, [...path, `${i}`])
 				})
