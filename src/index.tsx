@@ -87,31 +87,34 @@ const getDataFromSchemaAndDefault = (
 				defaultValue[key] &&
 				schema[key].children.type &&
 				schema[key].children.type !== Array
-					? defaultValue[key].map((value: any) => ({
+					? defaultValue[key].map((value: any, __i: number) => ({
 							value: value,
 							type: schema[key].children.type,
 							error: false,
 							required: schema[key].children.required === true,
 							validation: schema[key].children.validation || (() => true),
-							__parent: _[key]
+							__parent: _[key],
+							__i
 					  }))
 					: defaultValue &&
 					  defaultValue[key] &&
 					  Array.isArray(defaultValue[key])
-					? defaultValue[key].map((child: any) => ({
+					? defaultValue[key].map((child: any, __i: number) => ({
 							...getDataFromSchemaAndDefault(
 								schema[key].children,
 								child,
 								_[key]
 							),
+							__i,
 							__id: uniqid()
 					  }))
-					: (schema[key].default || []).map((child: any) => ({
+					: (schema[key].default || []).map((child: any, __i: number) => ({
 							...getDataFromSchemaAndDefault(
 								schema[key].children,
 								child,
 								_[key]
 							),
+							__i,
 							__id: uniqid()
 					  })) || []
 
@@ -119,6 +122,7 @@ const getDataFromSchemaAndDefault = (
 				if (children.length < schema[key].min) {
 					const nChildrenToAdd = schema[key].min - children.length
 					// TODO i thing something doesn't works here when default + min
+
 					for (let i = 0; i < nChildrenToAdd; i++) {
 						children.push({
 							...getDataFromSchemaAndDefault(
@@ -126,6 +130,7 @@ const getDataFromSchemaAndDefault = (
 								defaultValue ? defaultValue[key] : {},
 								_[key]
 							),
+							__i: children.length,
 							__id: uniqid()
 						})
 					}
@@ -162,8 +167,8 @@ const getDataFromSchemaAndDefault = (
 					value: defaultValue[key],
 					error: false,
 					required: false,
-					validation: () => true,
-					__parent: 'c'
+					validation: () => true
+					// __parent: _
 				}
 			}
 		})
@@ -222,6 +227,8 @@ const useForm = (formSchema = {}, initData = null) => {
 										child,
 										[],
 										(data: any) => {
+											console.log('ARRAY-GET-UPDATEFUNCTION')
+
 											updateFunction({
 												...parent,
 												children: parent.children.map((c: any, _i: number) =>
@@ -255,6 +262,7 @@ const useForm = (formSchema = {}, initData = null) => {
 
 										updateFunction({
 											...parent,
+											error: false,
 											children: parent.children.map((_child: any, _i: any) =>
 												i === _i ? _ : _child
 											)
@@ -273,9 +281,12 @@ const useForm = (formSchema = {}, initData = null) => {
 
 										updateFunction({
 											...parent,
-											children: parent.children.filter(
-												(_: any, _i: number) => i !== _i
-											)
+											children: parent.children
+												.filter((_: any, _i: number) => i !== _i)
+												.map((child: any, __i: number) => ({
+													...child,
+													__i
+												}))
 										})
 									}
 								},
@@ -298,6 +309,7 @@ const useForm = (formSchema = {}, initData = null) => {
 							parent.children[i],
 							[],
 							(data: any) => {
+								console.log('ARRAY-GET-UPDATEFUNCTION')
 								updateFunction({
 									...parent,
 									children: parent.children.map((c: any, _i: number) =>
@@ -336,6 +348,7 @@ const useForm = (formSchema = {}, initData = null) => {
 						)
 
 						newField.__id = uniqid()
+						newField.__i = parent.children.length
 
 						updateFunction({
 							...parent,
@@ -361,7 +374,12 @@ const useForm = (formSchema = {}, initData = null) => {
 
 						updateFunction({
 							...parent,
-							children: parent.children.filter((_: any, _i: number) => i !== _i)
+							children: parent.children
+								.filter((_: any, _i: number) => i !== _i)
+								.map((child: any, __i: number) => ({
+									...child,
+									__i
+								}))
 						})
 					}
 				}
@@ -369,17 +387,22 @@ const useForm = (formSchema = {}, initData = null) => {
 				return {
 					value: parent.value,
 					setValue: (value: any) => {
+						console.log('PRIMITIVE-UPDATEFUNCTION')
 						updateFunction({ value, __error: null })
 					},
-					error: parent.__error
+					error: parent.__error,
+					i: parent.__i
 				}
 			} else {
+				const index = parent.__i
+
 				return {
 					get: (name: string) => {
 						return recursiveGet(
 							parent,
 							name.split('.'),
 							(data: any) => {
+								console.log('OBJECT-GET-UPDATEFUNCTION')
 								updateFunction({
 									...data
 								})
@@ -397,7 +420,8 @@ const useForm = (formSchema = {}, initData = null) => {
 						updateFunction({
 							...newField
 						})
-					}
+					},
+					index
 				}
 			}
 		}
@@ -450,6 +474,8 @@ const useForm = (formSchema = {}, initData = null) => {
 			return {
 				value: _v,
 				setValue: (v: any) => {
+					console.log('OBJECT UPDATEFUNCTION')
+
 					updateFunction({
 						...parent,
 						__parent: 'BBB',
@@ -513,12 +539,16 @@ const useForm = (formSchema = {}, initData = null) => {
 
 					Object.keys(updatedData).forEach((key) => {
 						if (
-							['__error', '__parent', '__schema', '__id'].includes(key) ||
+							['__error', '__parent', '__schema', '__id', '__i'].includes(
+								key
+							) ||
 							typeof key === 'object'
 						)
 							return
 						updatedData[key].__parent = updatedData
 					})
+
+					console.log('OBJECT UPDATEFUNCTION2', data)
 
 					updateFunction(updatedData)
 				},
@@ -536,10 +566,23 @@ const useForm = (formSchema = {}, initData = null) => {
 			(data: any) => {
 				callEvents('change', recursiveToJSON(data))
 				setModified(true)
-				setFormData({
+
+				const _data = {
 					...formData,
 					...data
+				}
+
+				// TODO useless ?
+				Object.keys(data).forEach((key) => {
+					if (['__error', '__parent', '__schema', '__id', '__i'].includes(key))
+						return
+
+					_data[key].__parent = _data
 				})
+
+				console.log('ROOT GET', recursiveComputeParents(_data))
+
+				setFormData(_data)
 			},
 			[]
 		)
@@ -580,7 +623,9 @@ const useForm = (formSchema = {}, initData = null) => {
 						}
 
 						Object.keys(result).forEach((key) => {
-							if (['__error', '__parent', '__schema', '__id'].includes(key))
+							if (
+								['__error', '__parent', '__schema', '__id', '__i'].includes(key)
+							)
 								return
 
 							if (
@@ -629,7 +674,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = { ...data }
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent', '__schema', '__id'].includes(key)) return
+			if (['__error', '__parent', '__schema', '__id', '__i'].includes(key))
+				return
 
 			_data[key] = recursiveUpdateError(data[key])
 			_data[key].__parent = _data
@@ -640,6 +686,23 @@ const useForm = (formSchema = {}, initData = null) => {
 		_data.__error = !recursiveErrorCheck(data) // TODO performance optimization oportunity
 
 		return _data
+	}
+
+	const recursiveComputeParents = (elem: any) => {
+		console.log('RECOMPUTE', elem)
+
+		if (elem.type === Array) {
+		} else if (elem.type) {
+			return elem // Nothing to do here. parent will set __parent
+		}
+
+		// Object type
+
+		Object.values(elem).forEach((child: any) => {
+			child.__parent = elem
+		})
+
+		return elem
 	}
 
 	const recursiveErrorCheck = (data: any): boolean => {
@@ -653,8 +716,6 @@ const useForm = (formSchema = {}, initData = null) => {
 					isValid = false
 				}
 			})
-
-			console.log(data.validation, '!!!!')
 
 			if (data.validation) {
 				if (typeof data.validation !== 'function') return true
@@ -685,6 +746,7 @@ const useForm = (formSchema = {}, initData = null) => {
 
 				return data.validation(data.value, (pathString: string) => {
 					const path = pathString.split('.')
+
 					return recursiveGet(
 						path[0] === 'parent' ? data.__parent : formData,
 						path.slice(1),
@@ -699,7 +761,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		let isValid = true
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent', '__schema', '__id'].includes(key)) return
+			if (['__error', '__parent', '__schema', '__id', '__i'].includes(key))
+				return
 
 			if (!recursiveErrorCheck(data[key])) {
 				isValid = false
@@ -720,7 +783,8 @@ const useForm = (formSchema = {}, initData = null) => {
 		const _data: any = {}
 
 		Object.keys(data).forEach((key) => {
-			if (['__error', '__parent', '__schema', '__id'].includes(key)) return
+			if (['__error', '__parent', '__schema', '__id', '__i'].includes(key))
+				return
 
 			_data[key] = recursiveToJSON(data[key])
 			if (data[key].___payload) {
@@ -794,7 +858,8 @@ const useForm = (formSchema = {}, initData = null) => {
 			} else {
 				Object.keys(root)
 					.filter(
-						(key) => !['__error', '__parent', '__schema', '__id'].includes(key)
+						(key) =>
+							!['__error', '__parent', '__schema', '__id', '__i'].includes(key)
 					)
 					.forEach((key) => {
 						recursiveLogErrors(root[key], [...path, key])

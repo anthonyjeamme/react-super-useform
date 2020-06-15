@@ -4,6 +4,7 @@ import styled from "styled-components";
 
 import useForm, {text_field, bool_field} from 'react-super-useform'
 
+const uniqid = require('uniqid')
 
 const StyledTextarea = 
 styled.textarea`
@@ -74,87 +75,58 @@ const data = {
 }
 
 const formSchema = {
-	movies:{
-		type: Array,
-		min:1,
-		children:{
-			name: text_field(),
-			date: text_field(),
-			tags:{
-				type: Array,
-				min:2,
-				children: text_field({
-					validation:(value, get) => {
 
-						console.log(get('parent.0'))
+	enabled: bool_field(),
 
-						return value.length > 3
-					}
-				})
-			},
-			has_rank: bool_field(),
-			rank: text_field({
-				validation:(value, get) => {
 
-					if(get('parent.has_rank').value === false) return true
-					return value.length > 5
+	abc: text_field({validation:(value,get)=>{
 
-				}
-			}),
-			tags_enabled: bool_field()
-		}
+		console.log('abc => ',get('parent').toJSON().enabled)
+
+		return true
+	}}),
+
+	o:{
+		def:text_field({validation:(value,get)=>{
+
+			console.log('def => ',get('parent.parent').toJSON().enabled)
+	
+			return true
+		}})
 	},
 
-	a:{
-		b:{
-			name: text_field(),
-			ok:text_field(),
-			z:text_field({
-				default:'recursive is OP'
-			})
-		}
-	},
 	list:{
 		type: Array,
-		children: {
-			name: text_field()
-		},
-		min:7,max:7,
-		 default: [{ name: 'lundi' },
-		 { name: 'mardi' },
-		 { name: 'mercredi' },
-		 { name: 'jeudi' },
-		 { name: 'vendredi' },
-		 { name: 'samedi' },
-		 { name: 'dimanche' }
-		 ]
-	}
-	// a:{
-	// 	type: Array,
-	// 	children: text_field(),
-	// 	min: 1
-	// },
-	
-	// b:{
-	// 	type: Array,
-	// 	min:66,
-	// 	children: {
-	// 		arr:{
-	// 			type:Array,
-	// 			children: text_field()}
-	// 	},
-	// },
-	// test:{
-	// 	name:text_field({
-	// 		validation:(value, get) => {
-	// 			const checked = get('test.checked').value
+		min:1,
+		constrainMinMax:true,
+		children:{
 
-	// 			if(!checked) return true
-	// 			return value.length > 5
-	// 		}
-	// 	}),
-	// 	checked: bool_field()
-	// }
+			test: text_field({
+				validation:(value,get)=>{
+
+					console.log('TEST => ',get('parent.parent.parent').toJSON().enabled)
+					return true
+				}
+			}),
+			sublist: {
+				type: Array,
+				min:1,
+				constrainMinMax:true,
+				children: {
+					name: text_field({
+						validation: (value, get) => {
+
+							console.log('NAME => ',get('parent.parent.parent.parent.parent').toJSON().enabled)
+
+
+							return value.length > 0
+						}
+					})
+				}
+			}
+
+		}
+	}
 }
 
 const Hr = () => (
@@ -170,19 +142,14 @@ const Checkbox = ({value,setValue}) => {
 
 const App = () => {
 
-	const form = useForm(formSchema,data)
-
-	useEffect(()=>{
-
-		form.addEventListener('change', e => {
-
-			console.log('CHANGE',e)
-		})
-	},[])
+	const form = useForm(formSchema,null)
 
 
 	// console.log(form.get('test').get('parent.test.name'))
-	// console.log(form.formData)
+	form.logErrors()
+
+	console.log(form.formData)
+
 
   return (
 	<div style={{
@@ -191,108 +158,49 @@ const App = () => {
 		height:'100vh'
 	}}>
 
-		<div style={{flex:1, overflowY:'auto'}}>
+		<hr/>
 
+
+		<div style={{flex:1, overflowY:'auto'}}>
 			<Container>
 
-				<div style={{height:100}}></div>
+			<div>
+				<Checkbox {...form.get('enabled')} />
+				Checked
+			</div>
+
+			<Input {...form.get('o.def')} />
+			{
+				form.get('list').map((item,i,id) => (
+
+					<div style={{padding:10,marginBottom:10, backgroundColor:'#fafafa'}}>
+
+						{item.get('sublist').map(subitem => (
+							<div>
+								<Input {...subitem.get('name')} />
+							</div>
+						))}
+
+						<button onClick={()=>{
+							item.get('sublist').push()
+						}}>PUSH</button>
+
+					</div>
+
+				))
+			}
+
+			<Hr/>
+			<button onClick={()=>{
+
+			form.get('list').push()
+
+			}} style={{width:200, height:42}}>+</button>
+
+
 
 				<Hr/>
 
-				{
-					form.get('list').map(item => (
-						<div>
-							<Input {...item.get('name')} />
-						</div>
-					))
-				}
-
-				<h1>My best movies</h1>
-				
-				  {
-					form.get('movies').map(movie => (
-
-
-						<div style={{
-							margin:'0 0 40px 0',
-							background:"white",
-							padding:20
-						}}>
-							<div>
-								Movie name<br />
-								<Input {...movie.get('name')} />
-							</div>
-							<div>
-								Movie date<br />
-								<Input {...movie.get('date')} />
-							</div>
-
-							<Hr />
-
-							<Input {...movie.get('rank')} />
-							<Checkbox {...movie.get('has_rank')}/>
-							<Hr/>
-							<div>
-
-								<h2>Tags</h2>
-
-								<div>
-
-									Activate tags <Checkbox {...movie.get('tags_enabled')} />
-								</div>
-
-								{movie.get('tags').map(tag => (
-									<Input {...tag} />
-								))}
-
-
-								<br/>
-								<button onClick={()=>(
-									movie.get('tags').push()
-								)}>Add a tag</button>
-
-							</div>
-
-							{/* <button onClick={()=>{
-
-								// movie.set({
-								// 	name:'terminator', date:'1985',
-								// 	tags:['violence','action','vieux']
-								// })
-
-								movie.get('tags').set(['a','b'])
-
-							}}>Rude set</button> */}
-						</div>
-
-					))
-				}  
-
-
-				<Input {...form.get('a.b.name')} />
-				<Input {...form.get('a.b.ok')} />
-
-				<Input {...form.get('a.b.z')} />
-
-
-				<button onClick={()=>{
-
-					form.get('a').set({
-						b:{
-							name:"XXX",
-							ok:'okok'
-						}
-					})
-				}}>
-					SET !
-				</button>
-
-				<hr />
-
-				<button onClick={()=>{
-					form.get('movies').push()
-				}}>Add a movie</button>
-		
 			</Container>
 		</div>
 
@@ -313,9 +221,13 @@ const App = () => {
 					{
 						form.isValid ? '✔️':'❌'
 					}
+
 					</div>
 					<div>
-
+						<StyledButton onClick={()=>{
+							form.logErrors()
+							}}>Log Errors</StyledButton>
+				
 						<StyledButton onClick={()=>{
 							form.checkErrors()
 							}}>Check Errors</StyledButton>
