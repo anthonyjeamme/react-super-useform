@@ -580,7 +580,7 @@ const useForm = (formSchema = {}, initData = null) => {
 					_data[key].__parent = _data
 				})
 
-				console.log('ROOT GET', recursiveComputeParents(_data))
+				recursiveComputeParents(_data)
 
 				setFormData(_data)
 			},
@@ -691,18 +691,29 @@ const useForm = (formSchema = {}, initData = null) => {
 	const recursiveComputeParents = (elem: any) => {
 		console.log('RECOMPUTE', elem)
 
+		if (!elem) return
+
 		if (elem.type === Array) {
 		} else if (elem.type) {
-			return elem // Nothing to do here. parent will set __parent
+			return // Nothing to do here. parent will set __parent
 		}
 
 		// Object type
 
-		Object.values(elem).forEach((child: any) => {
-			child.__parent = elem
-		})
+		console.log(elem)
+		Object.keys(elem).forEach((key: string) => {
+			if (['__error', '__parent', '__schema', '__id', '__i'].includes(key))
+				return
 
-		return elem
+			const child = elem[key]
+
+			console.log(`[[[${key}]]]`, child)
+			// if (!['__error', '__parent', '__schema', '__id', '__i'].includes(key)) {
+			// 	recursiveComputeParents(child)
+
+			// 	// child.__parent = elem
+			// }
+		})
 	}
 
 	const recursiveErrorCheck = (data: any): boolean => {
